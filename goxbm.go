@@ -22,41 +22,37 @@ type Xbm struct {
 	Name           string
 	Width          uint
 	Height         uint
-	array          []byte // TODO: need concurrency protection
 	numBytesPerRow uint
+	array          []byte // TODO: need concurrency protection
 }
 
 // Returns the byte with the bit and that bits position in that byte
 func (t *Xbm) getByte(x, y uint) (*byte, uint, error) {
-	// TODO: better
 	if x >= t.Width {
-		return nil, 0x0, errors.New("X larger than the image width")
+		return nil, 0x0, errors.New("X not without allowable range")
 	}
 	if y >= t.Height {
-		return nil, 0x0, errors.New("Y larger than the image height")
+		return nil, 0x0, errors.New("Y not without allowable range")
 	}
 
 	const bitsPerByte uint = 8
 
-	bite := (y - 1) * uint(t.numBytesPerRow)
+	bite := y * uint(t.numBytesPerRow)
 	bite += (x / bitsPerByte)
 
 	var bit uint
 	bit = x % bitsPerByte
 
-	// bite := bit / 8
-	// 8,8
-	// 8,8
 	return &t.array[bite], bit, nil
 }
 
 func (t *Xbm) SetBit(x uint, y uint, val bool) error {
+	fmt.Printf("SetBit(%d, %d, %t)\n", x, y, val)
 	bite, pos, err := t.getByte(x, y)
 	if err != nil {
 		return err
 	}
 
-	// TODO ?
 	if val {
 		*bite |= 1 << pos
 	} else {
@@ -67,13 +63,13 @@ func (t *Xbm) SetBit(x uint, y uint, val bool) error {
 }
 
 func (t *Xbm) GetBit(x, y uint) (bool, error) {
+	fmt.Printf("GetBit(%d, %d)\n", x, y)
 	bite, pos, err := t.getByte(x, y)
 	if err != nil {
 		return false, err
 	}
 
 	return ((*bite & (1 << pos)) != 0), nil
-	// return (*bite&pos != 0), nil
 }
 
 func (t *Xbm) String() string {
@@ -113,6 +109,28 @@ func (t *Xbm) String() string {
 	return buf.String()
 }
 
+func (t *Xbm) Draw() {
+	var bitcount int
+	for bite := 0; bite < len(t.array); bite++ {
+		var pos uint
+		for pos = 0; pos < 8; pos++ {
+			if (t.array[bite] & (1 << pos)) != 0 {
+				fmt.Printf("0")
+			} else {
+				fmt.Printf("-")
+			}
+
+			bitcount++
+			if bitcount >= int(t.Width) {
+				fmt.Println("")
+				bitcount = 0
+				break
+			}
+		}
+	}
+	fmt.Println("")
+}
+
 // func Decode(array *Xbm, location io.Reader) error {
 //    return nil
 // }
@@ -122,6 +140,7 @@ func (t *Xbm) String() string {
 // }
 
 func New(name string, width, height uint) (*Xbm, error) {
+	fmt.Printf("goxbm.New(%s, %d, %d)\n", name, width, height)
 	// TODO: Make smarter
 	if width <= 0 {
 		return nil, errors.New("Width must be greater than 0")
@@ -138,12 +157,10 @@ func New(name string, width, height uint) (*Xbm, error) {
 	// Determine the number of bytes needed
 	img.numBytesPerRow = uint(math.Ceil(float64(17) / float64(bitsPerByte)))
 	numBytes := img.numBytesPerRow * height
-
-	if ((img.Width * img.Height) % 8) != 0 {
-		numBytes++
-	}
-
 	img.array = make([]byte, numBytes)
+
+	fmt.Printf("numBytes: %d\n", numBytes)
+	fmt.Printf("array (%d): %v\n", len(img.array), img.array)
 
 	return img, nil
 }

@@ -98,7 +98,7 @@ func TestCreationArray(t *testing.T) {
 }
 
 func TestSettingBit(t *testing.T) {
-	t.Skip("TODO")
+	t.Skip("The bit reversal bit isn't working")
 	testName := "foobar"
 	var testWidth, testHeight uint
 	testWidth = 1
