@@ -63,7 +63,7 @@ func (t *Xbm) SetBit(x uint, y uint, val bool) error {
 }
 
 func (t *Xbm) GetBit(x, y uint) (bool, error) {
-	fmt.Printf("GetBit(%d, %d)\n", x, y)
+	// fmt.Printf("GetBit(%d, %d)\n", x, y)
 	bite, pos, err := t.getByte(x, y)
 	if err != nil {
 		return false, err
@@ -140,7 +140,7 @@ func (t *Xbm) Draw() {
 // }
 
 func New(name string, width, height uint) (*Xbm, error) {
-	fmt.Printf("goxbm.New(%s, %d, %d)\n", name, width, height)
+	// fmt.Printf("goxbm.New(%s, %d, %d)\n", name, width, height)
 	// TODO: Make smarter
 	if width <= 0 {
 		return nil, errors.New("Width must be greater than 0")
